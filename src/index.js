@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import MiniDrawer from './app';
+import MiniDrawer from './app.js';
 //import reportWebVitals from './reportWebVitals';
 
 ReactDOM.render(

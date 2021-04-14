@@ -43,14 +43,14 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import "./row_col.css";
 import { FormatAlignCenter } from "../node_modules/@material-ui/icons/index";
 
-//import HardwareSetCard from "./components/card/HardwareSetCard";
+//import HardwareSetCard from "./components/card/HardwareSetCard.js";
 //import { getHardwareSets } from "./api";
 
-import HardwareSetContent from "./components/content/HardwareSetsContent"
+import HardwareSetContent from "./components/content/HardwareSetsContent.js"
 
-import LoginComponent from "./components/api/LoginAPI";
-import SignupComponent from "./components/api/SignupAPI";
-import useToken from "./components/hook/useTokenHook";
+import LoginComponent from "./components/api/LoginAPI.js";
+import SignupComponent from "./components/api/SignupAPI.js";
+import useToken from "./components/hook/useTokenHook.js";
 
 const drawerWidth = 240;
 

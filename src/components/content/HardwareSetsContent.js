@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
-import HardwareSetCard from "../card/HardwareSetCard";
-import HardwareSetsAPI from "../api/HardwareSetsAPI"
+import HardwareSetCard from "../card/HardwareSetCard.js";
+import HardwareSetsAPI from "../api/HardwareSetsAPI.js"
 
 
 function HardwareSetContent(props) {
