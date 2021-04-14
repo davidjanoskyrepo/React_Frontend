@@ -1,6 +1,5 @@
 // login.component.js
-import { useState } from 'react'
-import axios from "axios";
+import { useState, useRef, useEffect } from 'react'
 
 import Button from "@material-ui/core/Button";
 
@@ -11,38 +10,68 @@ import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 
-const url = "http://localhost:5555/";
+//const url = "http://localhost:5555/";
+const url = "https://flask-backend-ee461l.herokuapp.com/"
 
-function handleLogin(login_details, props) {
-    let changeableUrl = `${url}api/login_set/validate`;
-    let csrf = document.getElementsByName("csrf-token")[0].content;
-    const request_content = {
+// API call to login
+async function loginUser(login_details) {
+    let changeableUrl = `${url}api/login`;
+    console.log("URL formed : ", changeableUrl)
+    return fetch(changeableUrl, {
+        method: 'POST',
         headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": csrf,
+            'Content-Type': 'application/json'
         },
         credentials: "same-origin",
-        body: JSON.stringify({ user_name: login_details.username, user_password: login_details.password }),
-    }
-    axios.post(changeableUrl, request_content).then((result) => {
-        console.log(result.data);
-        props.setAuth(!props.auth);
-        props.setOpenLogin(false);
-    }, (error) => {
-        console.log(error);
+        body: JSON.stringify(login_details)
     })
-};
+        .then(data => data.json())
+}
+
+function useTraceUpdate(props) {
+    const prev = useRef(props);
+    useEffect(() => {
+        const changedProps = Object.entries(props).reduce((ps, [k, v]) => {
+            if (prev.current[k] !== v) {
+                ps[k] = [prev.current[k], v];
+            }
+            return ps;
+        }, {});
+        if (Object.keys(changedProps).length > 0) {
+            console.log('Changed props:', changedProps);
+        }
+        prev.current = props;
+    });
+}
 
 function LoginComponent(props) {
-    const [login_details, setLoginDetails] = useState({ username: "", password: "" });
+    const [login_details, setLoginDetails] = useState({ user_name: "", user_password: "" });
+
+    const handleSubmit = async e => {
+        e.preventDefault();
+        const token = await loginUser(login_details);
+        console.log("Token : ", token)
+        if (token.token != null) {
+            console.log("Got token, closing login")
+            props.setAuth(!props.auth);
+            props.setOpenLogin(false);
+        }
+        props.setToken(token);
+    }
+
+    useTraceUpdate(props);
+
     const handleCloseLogin = () => {
         props.setOpenLogin(false);
     };
 
-    const handleChange = e => {
-        const { name, value } = e.target;
-        setLoginDetails({ [name]: value })
+    const handleChange = (event) => {
+        setLoginDetails(prevState => ({
+            ...prevState,
+            [event.target.id]: event.target.value
+        }));
     };
+
     return (
         <div>
             <Dialog
@@ -59,8 +88,8 @@ function LoginComponent(props) {
                     <TextField
                         autoFocus
                         margin="dense"
-                        id="username"
-                        required="true"
+                        id="user_name"
+                        required
                         label="Username"
                         placeholder="Username"
                         type="text"
@@ -69,8 +98,8 @@ function LoginComponent(props) {
                     />
                     <TextField
                         margin="dense"
-                        id="password"
-                        required="true"
+                        id="user_password"
+                        required
                         label="Password"
                         placeholder="Password"
                         type="password"
@@ -82,7 +111,7 @@ function LoginComponent(props) {
                     <Button onClick={handleCloseLogin} color="primary">
                         Cancel
                     </Button>
-                    <Button onClick={handleLogin(login_details, props)} color="primary">
+                    <Button onClick={handleSubmit} color="primary">
                         Login
                     </Button>
                 </DialogActions>

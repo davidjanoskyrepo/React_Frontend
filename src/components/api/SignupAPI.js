@@ -1,6 +1,5 @@
 // signup.component.js
-import { useState } from 'react'
-import axios from "axios";
+import { useState, useRef, useEffect } from 'react'
 
 import Button from "@material-ui/core/Button";
 
@@ -11,38 +10,70 @@ import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 
-const url = "http://localhost:5555/";
+//const url = "http://localhost:5555/";
+const url = "https://flask-backend-ee461l.herokuapp.com/"
 
-function handleSignup(signup_details, props) {
-    let changeableUrl = `${url}api/signup_set/create`;
-    let csrf = document.getElementsByName("csrf-token")[0].content;
-    const request_content = {
+// API call to login
+async function loginUser(signup_details) {
+    let changeableUrl = `${url}api/signup`;
+    console.log("URL formed : ", changeableUrl)
+    console.log("signup_details : ", signup_details)
+    console.log("JSON to send : ", { user_name: signup_details.user_name, user_password: signup_details.user_password, email: signup_details.user_email })
+    return fetch(changeableUrl, {
+        method: 'POST',
         headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": csrf,
+            'Content-Type': 'application/json'
         },
         credentials: "same-origin",
-        body: JSON.stringify({ user_name: signup_details.username, user_password: signup_details.password, email: signup_details.email }),
-    }
-    axios.post(changeableUrl, request_content).then((result) => {
-        console.log(result.data);
-        props.setAuth(!props.auth);
-        props.setOpenSignup(false);
-    }, (error) => {
-        console.log(error);
+        body: JSON.stringify(signup_details)
     })
-};
+        .then(data => data.json())
+}
+
+function useTraceUpdate(props) {
+    const prev = useRef(props);
+    useEffect(() => {
+        const changedProps = Object.entries(props).reduce((ps, [k, v]) => {
+            if (prev.current[k] !== v) {
+                ps[k] = [prev.current[k], v];
+            }
+            return ps;
+        }, {});
+        if (Object.keys(changedProps).length > 0) {
+            console.log('Changed props:', changedProps);
+        }
+        prev.current = props;
+    });
+}
 
 function SignupComponent(props) {
-    const [signup_details, setSignupDetails] = useState({ username: "", password: "", email: "" });
+    const [signup_details, setSignupDetails] = useState({ user_name: "", user_password: "", user_email: "" });
+
+    const handleSubmit = async e => {
+        e.preventDefault();
+        const token = await loginUser(signup_details);
+        console.log("Token : ", token)
+        if (token.token != null) {
+            console.log("Got token, closing signup")
+            props.setAuth(!props.auth);
+            props.setOpenSignup(false);
+        }
+        props.setToken(token);
+    }
+
+    useTraceUpdate(props);
+
     const handleCloseSignup = () => {
         props.setOpenSignup(false);
     };
-    const handleChange = e => {
-        const { name, value } = e.target;
-        setSignupDetails({ [name]: value })
-        console.log(value)
+
+    const handleChange = (event) => {
+        setSignupDetails(prevState => ({
+            ...prevState,
+            [event.target.id]: event.target.value
+        }));
     };
+
     return (
         <div>
             <Dialog
@@ -59,8 +90,8 @@ function SignupComponent(props) {
                     <TextField
                         autoFocus
                         margin="dense"
-                        id="username"
-                        required="true"
+                        id="user_name"
+                        required
                         label="Username"
                         placeholder="Username"
                         type="text"
@@ -69,8 +100,8 @@ function SignupComponent(props) {
                     />
                     <TextField
                         margin="dense"
-                        id="password"
-                        required="true"
+                        id="user_password"
+                        required
                         label="Password"
                         placeholder="Password"
                         type="password"
@@ -79,8 +110,8 @@ function SignupComponent(props) {
                     />
                     <TextField
                         margin="dense"
-                        id="email"
-                        required="true"
+                        id="user_email"
+                        required
                         label="Email"
                         placeholder="Email"
                         type="email"
@@ -92,7 +123,7 @@ function SignupComponent(props) {
                     <Button onClick={handleCloseSignup} color="primary">
                         Cancel
                 </Button>
-                    <Button onClick={handleSignup(signup_details, props)} color="primary">
+                    <Button onClick={handleSubmit} color="primary">
                         Signup
                 </Button>
                 </DialogActions>

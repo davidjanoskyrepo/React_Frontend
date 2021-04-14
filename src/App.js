@@ -13,6 +13,7 @@ import Button from "@material-ui/core/Button";
 import MenuIcon from "@material-ui/icons/Menu";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import ChevronRightIcon from "@material-ui/icons/ChevronRight";
+//import MuiListItem from "@material-ui/core/ListItem";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
@@ -22,6 +23,7 @@ import AccountCircle from "@material-ui/icons/AccountCircle";
 import MenuItem from "@material-ui/core/MenuItem";
 import Menu from "@material-ui/core/Menu";
 
+import HomeIcon from '@material-ui/icons/Home';
 import DnsRoundedIcon from "@material-ui/icons/DnsRounded";
 import SettingsEthernetIcon from "@material-ui/icons/SettingsEthernet";
 import AccountBalanceWalletIcon from "@material-ui/icons/AccountBalanceWallet";
@@ -41,11 +43,14 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import "./row_col.css";
 import { FormatAlignCenter } from "../node_modules/@material-ui/icons/index";
 
-import HardwareSetCard from "./components/HardwareSetCard";
+//import HardwareSetCard from "./components/card/HardwareSetCard";
 //import { getHardwareSets } from "./api";
 
-import LoginComponent from "./components/LoginComponent";
-import SignupComponent from "./components/SignupComponent";
+import HardwareSetContent from "./components/content/HardwareSetsContent"
+
+import LoginComponent from "./components/api/LoginAPI";
+import SignupComponent from "./components/api/SignupAPI";
+import useToken from "./components/hook/useTokenHook";
 
 const drawerWidth = 240;
 
@@ -119,9 +124,23 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
+function AppContent(props) {
+    if (props.active_tab === "Home") {
+        return <h1>Replace with app content</h1>
+    } else if (props.active_tab === "Hardware Sets") {
+        return <HardwareSetContent />
+    } else {
+        return <h1>Default app content</h1>
+    }
+}
+
 export default function MiniDrawer() {
     const classes = useStyles();
     const theme = useTheme();
+
+    // This controls the active tab
+    const [active_tab, setActiveTab] = React.useState("Home");
+
     const [open, setOpen] = React.useState(false);
     const [auth, setAuth] = React.useState(false);
     const [anchorEl, setAnchorEl] = React.useState(null);
@@ -129,6 +148,8 @@ export default function MiniDrawer() {
 
     const [open_login, setOpenLogin] = React.useState(false);
     const [open_signup, setOpenSignup] = React.useState(false);
+
+    const { token, setToken, deleteToken } = useToken();
 
     //const [remainingHWSets, setRemainingHWSets] = useState([]);
 
@@ -141,8 +162,20 @@ export default function MiniDrawer() {
     }, []);
     */
 
+    const handleTabClick = (tab) => {
+        console.log(tab)
+        if (active_tab !== tab) {
+            console.log("Active tab changed to : ", tab)
+            setActiveTab(tab)
+        }
+    };
+
     const handleToggleLogin = () => {
-        auth ? setAuth(!auth) : setOpenLogin(true);
+        if (auth === true) {
+            handleLogout()
+        } else {
+            setOpenLogin(true)
+        }
     };
 
     const handleOpenSignup = () => {
@@ -160,6 +193,7 @@ export default function MiniDrawer() {
     const handleLogout = () => {
         setAnchorEl(null);
         setAuth(false);
+        deleteToken()
     };
 
     const handleMenu = (event) => {
@@ -240,6 +274,7 @@ export default function MiniDrawer() {
                             setAuth={setAuth}
                             open_login={open_login}
                             setOpenLogin={setOpenLogin}
+                            setToken={setToken}
                         />
                     </div>
                     {!auth && (
@@ -247,7 +282,7 @@ export default function MiniDrawer() {
                             <Button
                                 aria-label="signup button"
                                 variant="contained"
-                                color="blue"
+                                color="secondary"
                                 onClick={handleOpenSignup}
                             >
                                 {"Signup"}
@@ -257,6 +292,7 @@ export default function MiniDrawer() {
                                 setAuth={setAuth}
                                 open_signup={open_signup}
                                 setOpenSignup={setOpenSignup}
+                                setToken={setToken}
                             />
                         </div>
                     )}
@@ -287,19 +323,45 @@ export default function MiniDrawer() {
                 <div>
                     <Divider />
                     <List>
-                        <ListItem button key="Hardware Sets">
+                        <ListItem
+                            button
+                            key="Home"
+                            selected={active_tab === "Home"}
+                            onClick={() => handleTabClick("Home")}
+                        >
+                            <ListItemIcon>
+                                <HomeIcon />
+                            </ListItemIcon>
+                            <ListItemText primary="Home" />
+                        </ListItem>
+                        <ListItem
+                            button
+                            key="Hardware Sets"
+                            selected={active_tab === "Hardware Sets"}
+                            onClick={() => handleTabClick("Hardware Sets")}
+                        >
                             <ListItemIcon>
                                 <DnsRoundedIcon />
                             </ListItemIcon>
                             <ListItemText primary="Hardware Sets" />
                         </ListItem>
-                        <ListItem button key="Data Sets">
+                        <ListItem
+                            button
+                            key="Data Sets"
+                            selected={active_tab === "Data Sets"}
+                            onClick={() => handleTabClick("Data Sets")}
+                        >
                             <ListItemIcon>
                                 <SettingsEthernetIcon />
                             </ListItemIcon>
                             <ListItemText primary="Data Sets" />
                         </ListItem>
-                        <ListItem button key="Contact Us">
+                        <ListItem
+                            button
+                            key="Contact Us"
+                            selected={active_tab === "Contact Us"}
+                            onClick={() => handleTabClick("Contact Us")}
+                        >
                             <ListItemIcon>
                                 <HelpIcon />
                             </ListItemIcon>
@@ -311,31 +373,56 @@ export default function MiniDrawer() {
                     <div>
                         <Divider />
                         <List>
-                            <ListItem button key="Hardware Set Tickets">
+                            <ListItem
+                                button
+                                key="Hardware Set Tickets"
+                                selected={active_tab === "Hardware Set Tickets"}
+                                onClick={() => handleTabClick("Hardware Set Tickets")}
+                            >
                                 <ListItemIcon>
                                     <ReceiptIcon />
                                 </ListItemIcon>
                                 <ListItemText primary="Hardware Set Tickets" />
                             </ListItem>
-                            <ListItem button key="Data Set Bookmarks">
+                            <ListItem
+                                button
+                                key="Data Set Bookmarks"
+                                selected={active_tab === "Data Set Bookmarks"}
+                                onClick={() => handleTabClick("Data Set Bookmarks")}
+                            >
                                 <ListItemIcon>
                                     <BookmarksIcon />
                                 </ListItemIcon>
                                 <ListItemText primary="Data Set Bookmarks" />
                             </ListItem>
-                            <ListItem button key="Account">
+                            <ListItem
+                                button
+                                key="Account"
+                                selected={active_tab === "Account"}
+                                onClick={() => handleTabClick("Account")}
+                            >
                                 <ListItemIcon>
                                     <AccountBalanceWalletIcon />
                                 </ListItemIcon>
                                 <ListItemText primary="Account" />
                             </ListItem>
-                            <ListItem button key="Dashboard">
+                            <ListItem
+                                button
+                                key="Dashboard"
+                                selected={active_tab === "Dashboard"}
+                                onClick={() => handleTabClick("Dashboard")}
+                            >
                                 <ListItemIcon>
                                     <AssessmentIcon />
                                 </ListItemIcon>
                                 <ListItemText primary="Dashboard" />
                             </ListItem>
-                            <ListItem button key="Console">
+                            <ListItem
+                                button
+                                key="Console"
+                                selected={active_tab === "Console"}
+                                onClick={() => handleTabClick("Console")}
+                            >
                                 <ListItemIcon>
                                     <DesktopWindowsIcon />
                                 </ListItemIcon>
@@ -348,31 +435,9 @@ export default function MiniDrawer() {
             <main className={classes.content}>
                 <div className={classes.toolbar} />
                 <div className="row">
-                    <div className="column">
-                        <HardwareSetCard
-                            title="Super Computer - DeepDream"
-                            description="This is our most powerful compute solution, suitable for longer time
-            scales and complex compute tasks"
-                            remaining={10}
-                        />
-                    </div>
-                    <div className="column">
-                        <HardwareSetCard
-                            title="General Purpose Cloud Computing - PacMan"
-                            description="These rigs come fully equiped with multicore AMD EPIC
-              processors and well and a variety of GPUs to suit your compute
-              needs"
-                            remaining={11}
-                        />
-                    </div>
-                    <div className="column">
-                        <HardwareSetCard
-                            title="Nano Compute - TheTiny"
-                            description="Your code will run on a raspberry pi module with limited
-              resources and compute power"
-                            remaining={12}
-                        />
-                    </div>
+                    <AppContent
+                        active_tab={active_tab}
+                    />
                 </div>
             </main>
         </div>
